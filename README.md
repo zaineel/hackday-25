@@ -1,50 +1,111 @@
-# Welcome to your Expo app 👋
+# MoodSound - Emotion-Based Sound Therapy App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+MoodSound is a React Native application that uses facial expression recognition to provide personalized sound therapy. The app analyzes your facial expressions in real-time and plays appropriate sounds to help regulate your emotions.
 
-## Get started
+## Features
 
-1. Install dependencies
+### Core Features
 
-   ```bash
-   npm install
-   ```
+- **Facial Expression Recognition**: Real-time analysis of facial expressions using the Gemini API
+- **Adaptive Sound Therapy**: Automatically plays sounds based on detected emotions
+- **Sound Categories**:
+  - Calming sounds for negative emotions
+  - Elevating sounds for positive emotions
+  - Nature sounds for neutral states
+  - Meditation and focus sounds
+  - Sleep sounds
 
-2. Start the app
+### Technical Features
 
-   ```bash
-    npx expo start
-   ```
+- Built with React Native and Expo
+- Uses Vision Camera for facial expression capture
+- Integrates with Google's Gemini API for emotion analysis
+- Implements react-native-track-player for audio playback
+- State management with Zustand
+- Dark mode support
+- Responsive and intuitive UI
 
-In the output, you'll find options to open the app in a
+## Getting Started
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Prerequisites
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Node.js (v14 or later)
+- npm or yarn
+- Expo CLI
+- iOS Simulator (for Mac) or Android Studio (for Android development)
 
-## Get a fresh project
+### Installation
 
-When you're ready, run:
+1. Clone the repository:
 
 ```bash
-npm run reset-project
+git clone https://github.com/yourusername/moodsound.git
+cd moodsound
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Install dependencies:
 
-## Learn more
+```bash
+npm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+3. Set up environment variables:
+   Create a `.env` file in the root directory and add your Gemini API key:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+EXPO_PUBLIC_GEMINI_API_KEY=your_api_key_here
+```
 
-## Join the community
+4. Start the development server:
 
-Join our community of developers creating universal apps.
+```bash
+npm start
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+5. Run on your preferred platform:
+
+```bash
+# For iOS
+npm run ios
+
+# For Android
+npm run android
+```
+
+## Project Structure
+
+```
+moodsound/
+├── app/                    # Main app screens
+│   ├── camera.tsx         # Camera and expression recognition screen
+│   ├── sounds.tsx         # Sound selection screen
+│   └── settings.tsx       # App settings screen
+├── components/            # Reusable UI components
+├── services/             # Business logic and API services
+│   ├── audioService.ts   # Audio playback service
+│   ├── expressionService.ts # Expression recognition service
+│   └── soundLibraryService.ts # Sound library management
+├── hooks/                # Custom React hooks
+│   └── useExpressionRecognition.ts
+├── store/               # State management
+│   └── useStore.ts
+└── assets/             # Static assets (sounds, images)
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Google Gemini API for facial expression recognition
+- React Native community for excellent tools and libraries
+- All sound artists and contributors to the sound library
