@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import { Track } from "react-native-track-player";
+import { SoundTrack } from "../services/soundService";
 
 interface AppState {
   // Audio state
-  currentTrack: Track | null;
+  currentTrack: SoundTrack | null;
   isPlaying: boolean;
   volume: number;
 
@@ -16,7 +16,7 @@ interface AppState {
   expressionHistory: string[];
 
   // Actions
-  setCurrentTrack: (track: Track) => void;
+  setCurrentTrack: (track: SoundTrack | null) => void;
   setIsPlaying: (isPlaying: boolean) => void;
   setVolume: (volume: number) => void;
   setCameraActive: (active: boolean) => void;

@@ -1,130 +1,160 @@
-import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import { Camera, useCameraDevice } from "react-native-vision-camera";
-import { useExpressionRecognition } from "../hooks/useExpressionRecognition";
-import { useStore } from "../store/useStore";
-import SoundLibraryService from "../services/soundLibraryService";
-import { AudioService } from "../services/audioService";
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import { useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as Linking from "expo-linking";
 
 function CameraScreen() {
-  const device = useCameraDevice("front");
-  const camera = useRef<Camera>(null);
-  const { emotion, isProcessing, analyzeExpression } =
-    useExpressionRecognition();
-  const { setCurrentTrack } = useStore();
-  const soundLibrary = SoundLibraryService.getInstance();
-  const audioService = AudioService.getInstance();
   const colorScheme = useColorScheme();
 
-  useEffect(() => {
-    if (emotion) {
-      const sound = soundLibrary.getRandomSoundByMood(emotion);
-      if (sound && sound.url && sound.title && sound.artist) {
-        setCurrentTrack(sound);
-        audioService.playTrack({
-          id: sound.id,
-          url: sound.url,
-          title: sound.title,
-          artist: sound.artist,
-        });
-      }
-    }
-  }, [emotion]);
-
-  const capturePhoto = async () => {
-    if (camera.current) {
-      const photo = await camera.current.takePhoto();
-      const base64 = await photo.toBase64();
-      if (base64) {
-        analyzeExpression(base64);
-      }
-    }
+  const handleLearnMore = () => {
+    Linking.openURL(
+      "https://docs.expo.dev/development/create-development-builds/"
+    );
   };
 
-  if (!device) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Camera not available</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      <Camera
-        ref={camera}
-        style={StyleSheet.absoluteFill}
-        device={device}
-        isActive={true}
-        photo={true}
-      />
-      <View style={styles.overlay}>
-        <TouchableOpacity
+    <ScrollView
+      style={[
+        styles.container,
+        { backgroundColor: colorScheme === "dark" ? "#000" : "#fff" },
+      ]}>
+      <View style={styles.content}>
+        <Ionicons
+          name='camera'
+          size={64}
+          color={colorScheme === "dark" ? "#fff" : "#000"}
+        />
+        <Text
           style={[
-            styles.captureButton,
-            { backgroundColor: colorScheme === "dark" ? "#fff" : "#000" },
-          ]}
-          onPress={capturePhoto}
-          disabled={isProcessing}>
+            styles.title,
+            { color: colorScheme === "dark" ? "#fff" : "#000" },
+          ]}>
+          Camera Not Available
+        </Text>
+        <Text
+          style={[
+            styles.message,
+            { color: colorScheme === "dark" ? "#ccc" : "#666" },
+          ]}>
+          The camera feature requires a development build because it uses
+          react-native-vision-camera, which is not supported in Expo Go.
+        </Text>
+        <View style={styles.steps}>
           <Text
             style={[
-              styles.captureButtonText,
-              { color: colorScheme === "dark" ? "#000" : "#fff" },
-            ]}>
-            {isProcessing ? "Analyzing..." : "Capture"}
-          </Text>
-        </TouchableOpacity>
-        {emotion && (
-          <Text
-            style={[
-              styles.emotionText,
+              styles.stepsTitle,
               { color: colorScheme === "dark" ? "#fff" : "#000" },
             ]}>
-            Detected Emotion: {emotion}
+            To create a development build:
           </Text>
-        )}
+          <Text
+            style={[
+              styles.step,
+              { color: colorScheme === "dark" ? "#ccc" : "#666" },
+            ]}>
+            1. Install EAS CLI: npm install -g eas-cli
+          </Text>
+          <Text
+            style={[
+              styles.step,
+              { color: colorScheme === "dark" ? "#ccc" : "#666" },
+            ]}>
+            2. Log in to your Expo account: eas login
+          </Text>
+          <Text
+            style={[
+              styles.step,
+              { color: colorScheme === "dark" ? "#ccc" : "#666" },
+            ]}>
+            3. Configure the project: eas build:configure
+          </Text>
+          <Text
+            style={[
+              styles.step,
+              { color: colorScheme === "dark" ? "#ccc" : "#666" },
+            ]}>
+            4. Create development build: npx expo prebuild
+          </Text>
+          <Text
+            style={[
+              styles.step,
+              { color: colorScheme === "dark" ? "#ccc" : "#666" },
+            ]}>
+            5. Run the app: npx expo run:ios or npx expo run:android
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={[
+            styles.button,
+            { backgroundColor: colorScheme === "dark" ? "#333" : "#f0f0f0" },
+          ]}
+          onPress={handleLearnMore}>
+          <Text
+            style={[
+              styles.buttonText,
+              { color: colorScheme === "dark" ? "#fff" : "#000" },
+            ]}>
+            Learn More
+          </Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
   },
-  overlay: {
+  content: {
     flex: 1,
-    backgroundColor: "transparent",
-    justifyContent: "flex-end",
-    padding: 20,
-  },
-  captureButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20,
+    padding: 20,
+    gap: 16,
+    paddingTop: 60,
   },
-  captureButtonText: {
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  message: {
     fontSize: 16,
-    fontWeight: "600",
+    textAlign: "center",
+    maxWidth: "80%",
   },
-  emotionText: {
+  steps: {
+    width: "100%",
+    padding: 16,
+    backgroundColor: "rgba(0,0,0,0.05)",
+    borderRadius: 12,
+    gap: 8,
+  },
+  stepsTitle: {
     fontSize: 18,
     fontWeight: "600",
-    textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 8,
   },
-  errorText: {
+  step: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  button: {
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  buttonText: {
     fontSize: 16,
-    color: "#ff0000",
-    textAlign: "center",
-    marginTop: 20,
+    fontWeight: "600",
   },
 });
 

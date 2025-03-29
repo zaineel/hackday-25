@@ -1,85 +1,40 @@
 import React from "react";
-import { View, Text, StyleSheet, Switch, TouchableOpacity } from "react-native";
-import { useStore } from "../store/useStore";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Switch,
+  ScrollView,
+} from "react-native";
 import { useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { AudioService } from "../services/audioService";
-
-type BaseSetting = {
-  id: string;
-  title: string;
-  icon: string;
-};
-
-type SwitchSetting = BaseSetting & {
-  type: "switch";
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-};
-
-type SliderSetting = BaseSetting & {
-  type: "slider";
-  value: number;
-  onValueChange: (value: number) => void;
-};
-
-type Setting = SwitchSetting | SliderSetting;
 
 function SettingsScreen() {
   const colorScheme = useColorScheme();
-  const { isDarkMode, volume, toggleDarkMode, setVolume } = useStore();
-  const audioService = AudioService.getInstance();
+  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+  const [darkMode, setDarkMode] = React.useState(colorScheme === "dark");
+  const [soundEffects, setSoundEffects] = React.useState(true);
 
-  const handleVolumeChange = async (value: number) => {
-    setVolume(value);
-    await audioService.setVolume(value);
-  };
-
-  const settings: Setting[] = [
-    {
-      id: "darkMode",
-      title: "Dark Mode",
-      icon: "moon",
-      type: "switch",
-      value: isDarkMode,
-      onValueChange: toggleDarkMode,
-    },
-    {
-      id: "volume",
-      title: "Sound Volume",
-      icon: "volume-high",
-      type: "slider",
-      value: volume,
-      onValueChange: handleVolumeChange,
-    },
-    {
-      id: "notifications",
-      title: "Enable Notifications",
-      icon: "notifications",
-      type: "switch",
-      value: true,
-      onValueChange: () => {}, // TODO: Implement notifications toggle
-    },
-    {
-      id: "autoPlay",
-      title: "Auto-Play on Expression Change",
-      icon: "play",
-      type: "switch",
-      value: true,
-      onValueChange: () => {}, // TODO: Implement auto-play toggle
-    },
-  ];
-
-  const renderSetting = (setting: Setting) => (
+  const SettingItem = ({
+    icon,
+    title,
+    value,
+    onValueChange,
+  }: {
+    icon: string;
+    title: string;
+    value: boolean;
+    onValueChange: (value: boolean) => void;
+  }) => (
     <View
-      key={setting.id}
       style={[
         styles.settingItem,
-        { backgroundColor: colorScheme === "dark" ? "#333" : "#f0f0f0" },
+        { borderBottomColor: colorScheme === "dark" ? "#333" : "#eee" },
       ]}>
       <View style={styles.settingLeft}>
         <Ionicons
-          name={setting.icon as any}
+          name={icon as any}
           size={24}
           color={colorScheme === "dark" ? "#fff" : "#000"}
         />
@@ -88,73 +43,125 @@ function SettingsScreen() {
             styles.settingTitle,
             { color: colorScheme === "dark" ? "#fff" : "#000" },
           ]}>
-          {setting.title}
+          {title}
         </Text>
       </View>
-
-      {setting.type === "switch" && (
-        <Switch
-          value={setting.value}
-          onValueChange={setting.onValueChange}
-          trackColor={{ false: "#767577", true: "#81b0ff" }}
-          thumbColor={setting.value ? "#007AFF" : "#f4f3f4"}
-        />
-      )}
+      <Switch value={value} onValueChange={onValueChange} />
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={[
+        styles.container,
+        { backgroundColor: colorScheme === "dark" ? "#000" : "#fff" },
+      ]}>
       <View style={styles.header}>
         <Text
           style={[
-            styles.headerTitle,
+            styles.title,
             { color: colorScheme === "dark" ? "#fff" : "#000" },
           ]}>
           Settings
         </Text>
       </View>
 
-      <View style={styles.settingsList}>{settings.map(renderSetting)}</View>
-
-      <TouchableOpacity
-        style={[
-          styles.button,
-          { backgroundColor: colorScheme === "dark" ? "#333" : "#f0f0f0" },
-        ]}>
+      <View style={styles.section}>
         <Text
           style={[
-            styles.buttonText,
-            { color: colorScheme === "dark" ? "#fff" : "#000" },
+            styles.sectionTitle,
+            { color: colorScheme === "dark" ? "#999" : "#666" },
           ]}>
-          About App
+          App Settings
         </Text>
-      </TouchableOpacity>
-    </View>
+        <SettingItem
+          icon='notifications'
+          title='Notifications'
+          value={notificationsEnabled}
+          onValueChange={setNotificationsEnabled}
+        />
+        <SettingItem
+          icon='moon'
+          title='Dark Mode'
+          value={darkMode}
+          onValueChange={setDarkMode}
+        />
+        <SettingItem
+          icon='volume-high'
+          title='Sound Effects'
+          value={soundEffects}
+          onValueChange={setSoundEffects}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            { color: colorScheme === "dark" ? "#999" : "#666" },
+          ]}>
+          About
+        </Text>
+        <TouchableOpacity
+          style={[
+            styles.aboutItem,
+            { borderBottomColor: colorScheme === "dark" ? "#333" : "#eee" },
+          ]}>
+          <View style={styles.settingLeft}>
+            <Ionicons
+              name='information-circle'
+              size={24}
+              color={colorScheme === "dark" ? "#fff" : "#000"}
+            />
+            <Text
+              style={[
+                styles.settingTitle,
+                { color: colorScheme === "dark" ? "#fff" : "#000" },
+              ]}>
+              Version
+            </Text>
+          </View>
+          <Text
+            style={[
+              styles.versionText,
+              { color: colorScheme === "dark" ? "#999" : "#666" },
+            ]}>
+            1.0.0
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
   },
   header: {
-    marginBottom: 24,
+    padding: 20,
+    paddingTop: 60,
   },
-  headerTitle: {
-    fontSize: 28,
+  title: {
+    fontSize: 32,
     fontWeight: "bold",
   },
-  settingsList: {
-    gap: 12,
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 8,
+    paddingHorizontal: 20,
+    textTransform: "uppercase",
   },
   settingItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 16,
-    borderRadius: 12,
+    padding: 20,
+    borderBottomWidth: 1,
   },
   settingLeft: {
     flexDirection: "row",
@@ -163,17 +170,16 @@ const styles = StyleSheet.create({
   },
   settingTitle: {
     fontSize: 16,
-    fontWeight: "500",
   },
-  button: {
-    marginTop: "auto",
-    padding: 16,
-    borderRadius: 12,
+  aboutItem: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    padding: 20,
+    borderBottomWidth: 1,
   },
-  buttonText: {
+  versionText: {
     fontSize: 16,
-    fontWeight: "500",
   },
 });
 

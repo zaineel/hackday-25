@@ -1,118 +1,232 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
 } from "react-native";
-import { useStore } from "../store/useStore";
-import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "react-native";
-import SoundLibraryService, {
-  SoundCategory,
-} from "../services/soundLibraryService";
-import { AudioService } from "../services/audioService";
+import { Ionicons } from "@expo/vector-icons";
+import { Audio } from "expo-av";
+import { useStore } from "../../store/useStore";
+import {
+  fetchSounds,
+  CATEGORIES,
+  SoundTrack,
+} from "../../services/soundService";
 
-const SOUND_CATEGORIES = [
-  { id: "calming", name: "Calming", icon: "leaf" },
-  { id: "elevating", name: "Elevating", icon: "sunny" },
-  { id: "nature", name: "Nature", icon: "tree" },
-  { id: "meditation", name: "Meditation", icon: "sparkles" },
-  { id: "focus", name: "Focus", icon: "bulb" },
-  { id: "sleep", name: "Sleep", icon: "moon" },
-];
-
-function SoundsScreen() {
+export default function SoundsScreen() {
   const colorScheme = useColorScheme();
-  const { currentTrack, isPlaying, setIsPlaying, setCurrentTrack } = useStore();
-  const soundLibrary = SoundLibraryService.getInstance();
-  const audioService = AudioService.getInstance();
+  const { currentTrack, isPlaying, setCurrentTrack, setIsPlaying } = useStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0].id);
+  const [sounds, setSounds] = useState<SoundTrack[]>([]);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
 
-  const handleCategoryPress = async (category: SoundCategory) => {
-    const sound = soundLibrary.getRandomSoundByCategory(category);
-    if (sound && sound.url && sound.title && sound.artist) {
-      setCurrentTrack(sound);
-      await audioService.playTrack({
-        id: sound.id,
-        url: sound.url,
-        title: sound.title,
-        artist: sound.artist,
-      });
+  useEffect(() => {
+    loadSounds(selectedCategory);
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, [selectedCategory]);
+
+  const loadSounds = async (category: string) => {
+    setIsLoading(true);
+    const fetchedSounds = await fetchSounds(category);
+    setSounds(fetchedSounds);
+    setIsLoading(false);
+  };
+
+  const handlePlaySound = async (track: SoundTrack) => {
+    try {
+      setIsLoading(true);
+
+      // Stop current sound if playing
+      if (sound) {
+        await sound.unloadAsync();
+      }
+
+      // Load and play new sound
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: track.url },
+        { shouldPlay: true, isLooping: true }
+      );
+      setSound(newSound);
+      setCurrentTrack(track);
+      setIsPlaying(true);
+    } catch (error) {
+      console.log("Error playing sound:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const renderCategory = ({ item }: { item: (typeof SOUND_CATEGORIES)[0] }) => (
+  const handleStopSound = async () => {
+    try {
+      if (sound) {
+        await sound.stopAsync();
+        await sound.unloadAsync();
+        setSound(null);
+        setCurrentTrack(null);
+        setIsPlaying(false);
+      }
+    } catch (error) {
+      console.log("Error stopping sound:", error);
+    }
+  };
+
+  const renderCategoryItem = ({ item }: { item: (typeof CATEGORIES)[0] }) => (
     <TouchableOpacity
       style={[
-        styles.categoryCard,
-        { backgroundColor: colorScheme === "dark" ? "#333" : "#f0f0f0" },
+        styles.categoryItem,
+        {
+          backgroundColor:
+            selectedCategory === item.id
+              ? colorScheme === "dark"
+                ? "#fff"
+                : "#000"
+              : colorScheme === "dark"
+              ? "rgba(255,255,255,0.1)"
+              : "rgba(0,0,0,0.05)",
+        },
       ]}
-      onPress={() => handleCategoryPress(item.id as SoundCategory)}>
+      onPress={() => setSelectedCategory(item.id)}>
       <Ionicons
         name={item.icon as any}
-        size={32}
-        color={colorScheme === "dark" ? "#fff" : "#000"}
+        size={24}
+        color={
+          selectedCategory === item.id
+            ? colorScheme === "dark"
+              ? "#000"
+              : "#fff"
+            : colorScheme === "dark"
+            ? "#fff"
+            : "#000"
+        }
       />
       <Text
         style={[
-          styles.categoryName,
-          { color: colorScheme === "dark" ? "#fff" : "#000" },
+          styles.categoryText,
+          {
+            color:
+              selectedCategory === item.id
+                ? colorScheme === "dark"
+                  ? "#000"
+                  : "#fff"
+                : colorScheme === "dark"
+                ? "#fff"
+                : "#000",
+          },
         ]}>
         {item.name}
       </Text>
     </TouchableOpacity>
   );
 
-  return (
-    <View style={styles.container}>
-      <FlatList
-        data={SOUND_CATEGORIES}
-        renderItem={renderCategory}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.grid}
+  const renderSoundItem = ({ item }: { item: SoundTrack }) => (
+    <TouchableOpacity
+      style={[
+        styles.soundItem,
+        {
+          backgroundColor:
+            colorScheme === "dark"
+              ? "rgba(255,255,255,0.1)"
+              : "rgba(0,0,0,0.05)",
+        },
+      ]}
+      onPress={() =>
+        currentTrack?.id === item.id && isPlaying
+          ? handleStopSound()
+          : handlePlaySound(item)
+      }>
+      <Ionicons
+        name={item.icon as any}
+        size={24}
+        color={colorScheme === "dark" ? "#fff" : "#000"}
       />
-
-      {currentTrack && (
-        <View
+      <View style={styles.soundInfo}>
+        <Text
           style={[
-            styles.playerBar,
-            { backgroundColor: colorScheme === "dark" ? "#222" : "#fff" },
+            styles.soundTitle,
+            { color: colorScheme === "dark" ? "#fff" : "#000" },
           ]}>
-          <View style={styles.trackInfo}>
-            <Text
-              style={[
-                styles.trackTitle,
-                { color: colorScheme === "dark" ? "#fff" : "#000" },
-              ]}>
-              {currentTrack.title}
-            </Text>
-            <Text
-              style={[
-                styles.trackArtist,
-                { color: colorScheme === "dark" ? "#999" : "#666" },
-              ]}>
-              {currentTrack.artist}
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => {
-              if (isPlaying) {
-                audioService.pause();
-              } else {
-                audioService.resume();
-              }
-            }}
-            style={styles.playButton}>
-            <Ionicons
-              name={isPlaying ? "pause" : "play"}
-              size={24}
+          {item.title}
+        </Text>
+        <Text
+          style={[
+            styles.soundArtist,
+            { color: colorScheme === "dark" ? "#ccc" : "#666" },
+          ]}>
+          {item.artist}
+        </Text>
+      </View>
+      {isLoading && currentTrack?.id === item.id ? (
+        <ActivityIndicator
+          size='small'
+          color={colorScheme === "dark" ? "#fff" : "#000"}
+        />
+      ) : (
+        <Ionicons
+          name={currentTrack?.id === item.id && isPlaying ? "pause" : "play"}
+          size={24}
+          color={colorScheme === "dark" ? "#fff" : "#000"}
+        />
+      )}
+    </TouchableOpacity>
+  );
+
+  return (
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colorScheme === "dark" ? "#000" : "#fff" },
+      ]}>
+      <View style={styles.content}>
+        <Text
+          style={[
+            styles.title,
+            { color: colorScheme === "dark" ? "#fff" : "#000" },
+          ]}>
+          Sound Library
+        </Text>
+        <Text
+          style={[
+            styles.subtitle,
+            { color: colorScheme === "dark" ? "#ccc" : "#666" },
+          ]}>
+          Choose a category and play soothing sounds
+        </Text>
+
+        <FlatList
+          data={CATEGORIES}
+          renderItem={renderCategoryItem}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesList}
+        />
+
+        {isLoading && sounds.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator
+              size='large'
               color={colorScheme === "dark" ? "#fff" : "#000"}
             />
-          </TouchableOpacity>
-        </View>
-      )}
+          </View>
+        ) : (
+          <FlatList
+            data={sounds}
+            renderItem={renderSoundItem}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            style={styles.soundsList}
+          />
+        )}
+      </View>
     </View>
   );
 }
@@ -121,52 +235,60 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  grid: {
-    padding: 16,
-  },
-  categoryCard: {
+  content: {
     flex: 1,
-    margin: 8,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    aspectRatio: 1,
+    padding: 20,
+    paddingTop: 60,
   },
-  categoryName: {
-    marginTop: 8,
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  subtitle: {
     fontSize: 16,
-    fontWeight: "600",
+    marginBottom: 32,
   },
-  playerBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
+  categoriesList: {
+    marginBottom: 24,
+  },
+  categoryItem: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
+    padding: 12,
+    borderRadius: 12,
+    marginRight: 12,
+    gap: 8,
   },
-  trackInfo: {
-    flex: 1,
-  },
-  trackTitle: {
+  categoryText: {
     fontSize: 16,
     fontWeight: "600",
   },
-  trackArtist: {
+  soundsList: {
+    flex: 1,
+  },
+  soundItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    gap: 16,
+  },
+  soundInfo: {
+    flex: 1,
+  },
+  soundTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  soundArtist: {
     fontSize: 14,
   },
-  playButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
+  loadingContainer: {
+    flex: 1,
     justifyContent: "center",
+    alignItems: "center",
   },
 });
-
-export default SoundsScreen;

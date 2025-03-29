@@ -1,8 +1,13 @@
-import TrackPlayer, { Track } from "react-native-track-player";
+export interface Track {
+  id: string;
+  url: string;
+  title: string;
+  artist?: string;
+}
 
 class AudioService {
   private static instance: AudioService;
-  private isInitialized = false;
+  private isSetup = false;
 
   private constructor() {}
 
@@ -13,34 +18,62 @@ class AudioService {
     return AudioService.instance;
   }
 
-  async initialize() {
-    if (this.isInitialized) return;
-
-    await TrackPlayer.setupPlayer();
-    this.isInitialized = true;
+  async setup() {
+    if (!this.isSetup) {
+      console.log("Setting up audio service");
+      this.isSetup = true;
+    }
   }
 
   async playTrack(track: Track) {
-    await this.initialize();
-    await TrackPlayer.reset();
-    await TrackPlayer.add(track);
-    await TrackPlayer.play();
+    try {
+      await this.setup();
+      console.log("Playing track:", track.title);
+    } catch (error) {
+      console.error("Error playing track:", error);
+    }
   }
 
   async pause() {
-    await TrackPlayer.pause();
+    try {
+      console.log("Pausing playback");
+    } catch (error) {
+      console.error("Error pausing track:", error);
+    }
   }
 
   async resume() {
-    await TrackPlayer.play();
+    try {
+      console.log("Resuming playback");
+    } catch (error) {
+      console.error("Error resuming track:", error);
+    }
   }
 
   async stop() {
-    await TrackPlayer.reset();
+    try {
+      console.log("Stopping playback");
+    } catch (error) {
+      console.error("Error stopping track:", error);
+    }
   }
 
   async setVolume(volume: number) {
-    await TrackPlayer.setVolume(volume);
+    try {
+      console.log("Setting volume to:", volume);
+    } catch (error) {
+      console.error("Error setting volume:", error);
+    }
+  }
+
+  async playSound(soundUrl: string) {
+    console.log("Playing sound:", soundUrl);
+    // TODO: Implement sound playback when we have a development build
+  }
+
+  async stopSound() {
+    console.log("Stopping sound");
+    // TODO: Implement sound stopping when we have a development build
   }
 }
 
