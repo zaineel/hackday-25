@@ -12,6 +12,7 @@ export default function RootLayout() {
           backgroundColor: colorScheme === "dark" ? "#000" : "#fff",
         },
       }}>
+      <Stack.Screen name='index' options={{ headerShown: false }} />
       <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
       <Stack.Screen name='sign-in' options={{ headerShown: false }} />
       <Stack.Screen name='sign-up' options={{ headerShown: false }} />
