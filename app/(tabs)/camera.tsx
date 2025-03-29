@@ -1,104 +1,90 @@
-import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
-import { Camera } from "react-native-vision-camera";
+import React, { useEffect, useRef } from "react";
+import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
+import { Camera, useCameraDevice } from "react-native-vision-camera";
+import { useExpressionRecognition } from "../hooks/useExpressionRecognition";
 import { useStore } from "../store/useStore";
+import SoundLibraryService from "../services/soundLibraryService";
+import { AudioService } from "../services/audioService";
 import { useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useExpressionRecognition } from "../hooks/useExpressionRecognition";
 
-export default function CameraScreen() {
+function CameraScreen() {
+  const device = useCameraDevice("front");
+  const camera = useRef<Camera>(null);
+  const { emotion, isProcessing, analyzeExpression } =
+    useExpressionRecognition();
+  const { setCurrentTrack } = useStore();
+  const soundLibrary = SoundLibraryService.getInstance();
+  const audioService = AudioService.getInstance();
   const colorScheme = useColorScheme();
-  const [hasPermission, setHasPermission] = useState(false);
-  const {
-    setCameraActive,
-    setCameraPermission,
-    currentExpression,
-    isCameraActive,
-  } = useStore();
-  const { device, cameraRef } = useExpressionRecognition();
 
   useEffect(() => {
-    checkPermission();
-  }, []);
+    if (emotion) {
+      const sound = soundLibrary.getRandomSoundByMood(emotion);
+      if (sound && sound.url && sound.title && sound.artist) {
+        setCurrentTrack(sound);
+        audioService.playTrack({
+          id: sound.id,
+          url: sound.url,
+          title: sound.title,
+          artist: sound.artist,
+        });
+      }
+    }
+  }, [emotion]);
 
-  const checkPermission = async () => {
-    const cameraPermission = await Camera.requestCameraPermission();
-    setHasPermission(cameraPermission === "granted");
-    setCameraPermission(cameraPermission === "granted");
+  const capturePhoto = async () => {
+    if (camera.current) {
+      const photo = await camera.current.takePhoto();
+      const base64 = await photo.toBase64();
+      if (base64) {
+        analyzeExpression(base64);
+      }
+    }
   };
 
-  if (!device || !hasPermission) {
+  if (!device) {
     return (
       <View style={styles.container}>
-        <Text
-          style={[
-            styles.text,
-            { color: colorScheme === "dark" ? "#fff" : "#000" },
-          ]}>
-          {!device ? "Loading camera..." : "Camera permission required"}
-        </Text>
+        <Text style={styles.errorText}>Camera not available</Text>
       </View>
     );
   }
 
-  const startCamera = () => {
-    setCameraActive(true);
-  };
-
-  const stopCamera = () => {
-    setCameraActive(false);
-  };
-
   return (
     <View style={styles.container}>
       <Camera
-        ref={cameraRef}
+        ref={camera}
         style={StyleSheet.absoluteFill}
         device={device}
-        isActive={isCameraActive}
+        isActive={true}
         photo={true}
-        video={false}
-        audio={false}
       />
-
       <View style={styles.overlay}>
-        <View style={styles.expressionContainer}>
+        <TouchableOpacity
+          style={[
+            styles.captureButton,
+            { backgroundColor: colorScheme === "dark" ? "#fff" : "#000" },
+          ]}
+          onPress={capturePhoto}
+          disabled={isProcessing}>
           <Text
             style={[
-              styles.expressionText,
+              styles.captureButtonText,
+              { color: colorScheme === "dark" ? "#000" : "#fff" },
+            ]}>
+            {isProcessing ? "Analyzing..." : "Capture"}
+          </Text>
+        </TouchableOpacity>
+        {emotion && (
+          <Text
+            style={[
+              styles.emotionText,
               { color: colorScheme === "dark" ? "#fff" : "#000" },
             ]}>
-            Current Expression: {currentExpression || "None detected"}
+            Detected Emotion: {emotion}
           </Text>
-        </View>
-
-        <View style={styles.controls}>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              { backgroundColor: colorScheme === "dark" ? "#333" : "#fff" },
-            ]}
-            onPress={startCamera}>
-            <Ionicons
-              name='play'
-              size={24}
-              color={colorScheme === "dark" ? "#fff" : "#000"}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.button,
-              { backgroundColor: colorScheme === "dark" ? "#333" : "#fff" },
-            ]}
-            onPress={stopCamera}>
-            <Ionicons
-              name='stop'
-              size={24}
-              color={colorScheme === "dark" ? "#fff" : "#000"}
-            />
-          </TouchableOpacity>
-        </View>
+        )}
       </View>
     </View>
   );
@@ -112,34 +98,34 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "transparent",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     padding: 20,
   },
-  expressionContainer: {
-    backgroundColor: "rgba(0,0,0,0.5)",
-    padding: 16,
-    borderRadius: 12,
+  captureButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    alignSelf: "center",
     alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
   },
-  expressionText: {
-    fontSize: 18,
+  captureButtonText: {
+    fontSize: 16,
     fontWeight: "600",
   },
-  controls: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 20,
+  emotionText: {
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 20,
   },
-  button: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: {
+  errorText: {
     fontSize: 16,
+    color: "#ff0000",
     textAlign: "center",
     marginTop: 20,
   },
 });
+
+export default CameraScreen;

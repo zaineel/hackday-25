@@ -23,7 +23,7 @@ const SOUND_CATEGORIES = [
   { id: "sleep", name: "Sleep", icon: "moon" },
 ];
 
-export default function SoundsScreen() {
+function SoundsScreen() {
   const colorScheme = useColorScheme();
   const { currentTrack, isPlaying, setIsPlaying, setCurrentTrack } = useStore();
   const soundLibrary = SoundLibraryService.getInstance();
@@ -168,3 +168,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
+
+export default SoundsScreen;

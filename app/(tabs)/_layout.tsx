@@ -1,13 +1,6 @@
 import { Tabs } from "expo-router";
-import React from "react";
-import { Platform } from "react-native";
 import { useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-import { HapticTab } from "@/components/HapticTab";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
 
 export default function TabsLayout() {
   const colorScheme = useColorScheme();
@@ -18,15 +11,6 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colorScheme === "dark" ? "#fff" : "#000",
         tabBarInactiveTintColor: colorScheme === "dark" ? "#666" : "#999",
         headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: "absolute",
-          },
-          default: {},
-        }),
       }}>
       <Tabs.Screen
         name='sounds'

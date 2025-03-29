@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(
   process.env.EXPO_PUBLIC_GEMINI_API_KEY || ""
 );
 
-export function useExpressionRecognition() {
+function useExpressionRecognition() {
   const [emotion, setEmotion] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -55,3 +55,5 @@ export function useExpressionRecognition() {
     analyzeExpression,
   };
 }
+
+export default useExpressionRecognition;

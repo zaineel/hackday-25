@@ -12,7 +12,7 @@ interface AppState {
   setVolume: (volume: number) => void;
 }
 
-export const useStore = create<AppState>((set) => ({
+const useStore = create<AppState>((set) => ({
   isPlaying: false,
   currentTrack: null,
   isDarkMode: false,
@@ -22,3 +22,5 @@ export const useStore = create<AppState>((set) => ({
   toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
   setVolume: (volume) => set({ volume }),
 }));
+
+export default useStore;

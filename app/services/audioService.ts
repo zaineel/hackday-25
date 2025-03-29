@@ -1,6 +1,6 @@
 import TrackPlayer, { Track } from "react-native-track-player";
 
-export class AudioService {
+class AudioService {
   private static instance: AudioService;
   private isInitialized = false;
 
@@ -43,3 +43,5 @@ export class AudioService {
     await TrackPlayer.setVolume(volume);
   }
 }
+
+export default AudioService;

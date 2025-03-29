@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Switch, TouchableOpacity } from "react-native";
 import { useStore } from "../store/useStore";
 import { useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { AudioService } from "../services/audioService";
 
 type BaseSetting = {
   id: string;
@@ -24,9 +25,15 @@ type SliderSetting = BaseSetting & {
 
 type Setting = SwitchSetting | SliderSetting;
 
-export default function SettingsScreen() {
+function SettingsScreen() {
   const colorScheme = useColorScheme();
-  const { volume, setVolume } = useStore();
+  const { isDarkMode, volume, toggleDarkMode, setVolume } = useStore();
+  const audioService = AudioService.getInstance();
+
+  const handleVolumeChange = async (value: number) => {
+    setVolume(value);
+    await audioService.setVolume(value);
+  };
 
   const settings: Setting[] = [
     {
@@ -34,8 +41,8 @@ export default function SettingsScreen() {
       title: "Dark Mode",
       icon: "moon",
       type: "switch",
-      value: colorScheme === "dark",
-      onValueChange: () => {}, // TODO: Implement dark mode toggle
+      value: isDarkMode,
+      onValueChange: toggleDarkMode,
     },
     {
       id: "volume",
@@ -43,7 +50,7 @@ export default function SettingsScreen() {
       icon: "volume-high",
       type: "slider",
       value: volume,
-      onValueChange: setVolume,
+      onValueChange: handleVolumeChange,
     },
     {
       id: "notifications",
@@ -169,3 +176,5 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 });
+
+export default SettingsScreen;

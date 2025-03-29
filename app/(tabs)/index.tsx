@@ -1,74 +1,235 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ImageBackground,
+  Dimensions,
+} from "react-native";
+import { useColorScheme } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const { width } = Dimensions.get("window");
 
-export default function HomeScreen() {
+function HomeScreen() {
+  const colorScheme = useColorScheme();
+
+  const handleSignIn = () => {
+    router.push("/sign-in");
+  };
+
+  const handleSignUp = () => {
+    router.push("/sign-up");
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <ImageBackground
+      source={require("../../assets/images/background.jpg")}
+      style={styles.background}>
+      <View style={styles.overlay}>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Ionicons
+              name='musical-notes'
+              size={64}
+              color={colorScheme === "dark" ? "#fff" : "#000"}
+            />
+            <Text
+              style={[
+                styles.title,
+                { color: colorScheme === "dark" ? "#fff" : "#000" },
+              ]}>
+              MoodSound
+            </Text>
+            <Text
+              style={[
+                styles.subtitle,
+                { color: colorScheme === "dark" ? "#ccc" : "#666" },
+              ]}>
+              Your personal sound companion for every mood
+            </Text>
+          </View>
+
+          <View style={styles.features}>
+            <Feature
+              icon='camera'
+              title='Emotion Detection'
+              description='Play sounds based on your facial expressions'
+              colorScheme={colorScheme}
+            />
+            <Feature
+              icon='musical-notes'
+              title='Curated Sounds'
+              description='Handpicked sounds for every mood and moment'
+              colorScheme={colorScheme}
+            />
+            <Feature
+              icon='heart'
+              title='Mental Wellness'
+              description='Support your emotional well-being with therapeutic sounds'
+              colorScheme={colorScheme}
+            />
+          </View>
+
+          <View style={styles.buttons}>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                styles.signUpButton,
+                { backgroundColor: colorScheme === "dark" ? "#fff" : "#000" },
+              ]}
+              onPress={handleSignUp}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  { color: colorScheme === "dark" ? "#000" : "#fff" },
+                ]}>
+                Get Started
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.button,
+                styles.signInButton,
+                {
+                  backgroundColor: "transparent",
+                  borderWidth: 1,
+                  borderColor: colorScheme === "dark" ? "#fff" : "#000",
+                },
+              ]}
+              onPress={handleSignIn}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  { color: colorScheme === "dark" ? "#fff" : "#000" },
+                ]}>
+                Sign In
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </ImageBackground>
+  );
+}
+
+function Feature({
+  icon,
+  title,
+  description,
+  colorScheme,
+}: {
+  icon: string;
+  title: string;
+  description: string;
+  colorScheme: string | null;
+}) {
+  return (
+    <View
+      style={[
+        styles.feature,
+        {
+          backgroundColor:
+            colorScheme === "dark"
+              ? "rgba(255,255,255,0.1)"
+              : "rgba(0,0,0,0.05)",
+        },
+      ]}>
+      <Ionicons
+        name={icon as any}
+        size={24}
+        color={colorScheme === "dark" ? "#fff" : "#000"}
+      />
+      <Text
+        style={[
+          styles.featureTitle,
+          { color: colorScheme === "dark" ? "#fff" : "#000" },
+        ]}>
+        {title}
+      </Text>
+      <Text
+        style={[
+          styles.featureDescription,
+          { color: colorScheme === "dark" ? "#ccc" : "#666" },
+        ]}>
+        {description}
+      </Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  background: {
+    flex: 1,
+    width: "100%",
   },
-  stepContainer: {
-    gap: 8,
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+  content: {
+    flex: 1,
+    padding: 20,
+    justifyContent: "space-between",
+  },
+  header: {
+    alignItems: "center",
+    marginTop: 60,
+  },
+  title: {
+    fontSize: 48,
+    fontWeight: "bold",
+    marginTop: 16,
+    textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 18,
+    textAlign: "center",
+    marginTop: 8,
+    maxWidth: width * 0.8,
+  },
+  features: {
+    gap: 16,
+    marginVertical: 40,
+  },
+  feature: {
+    padding: 20,
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  featureTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    flex: 1,
+  },
+  featureDescription: {
+    fontSize: 14,
+    flex: 1,
+  },
+  buttons: {
+    gap: 16,
+    marginBottom: 40,
+  },
+  button: {
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  signUpButton: {
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  signInButton: {
+    marginBottom: 0,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
+
+export default HomeScreen;

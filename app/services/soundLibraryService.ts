@@ -103,3 +103,5 @@ export class SoundLibraryService {
     return moodSounds[randomIndex];
   }
 }
+
+export default SoundLibraryService;
